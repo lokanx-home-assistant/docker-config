@@ -1,0 +1,198 @@
+version: "3.5"
+services:
+  swag:
+    image: ghcr.io/linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    network_mode: bridge
+    environment:
+      - PUID=${SWAG_PUID}
+      - PGID=${SWAG_PGID}
+      - TZ=${GENERAL_TZ}
+      - URL=${SWAG_URL}
+      - SUBDOMAINS=${SWAG_SUBDOMAINS}
+      - VALIDATION=http
+      - ONLY_SUBDOMAINS=true
+      - EMAIL=${SWAG_ENAIL}
+      - UMASK=${SWAG_UMASK}
+      - MAXMINDDB_LICENSE_KEY=${SWAG_MAXMINDDB_LICENSE_KEY}
+#      - STAGING=true
+    volumes:
+      - /srv/docker/letsencrypt/config:/config
+    ports:
+      - 7443:443
+      - 7480:80
+    restart: always
+  mariadb:
+    container_name: mariadb
+    image: mariadb
+    restart: always
+    ports: 
+      - 3306:3306
+    network_mode: bridge
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MARIADB_MYSQL_ROOT_PASSWORD}
+    volumes:
+      - /srv/docker/mariadb/conf:/etc/mysql
+      - /srv/docker/mariadb/data:/var/lib/mysql
+      - /srv/docker/mariadb/bu:/var/lib/mysql-bup
+
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: always
+    depends_on:
+      - mariadb
+    ports:
+      - 13306:8080
+    network_mode: bridge
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MARIADB_MYSQL_ROOT_PASSWORD}
+
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto
+    restart: always
+    depends_on: 
+      - swag
+    ports:
+      - 1883:1883
+      - 8883:8883 
+      - 8083:8083
+    network_mode: bridge
+    volumes:
+      - /srv/docker/mosquitto:/mosquitto
+      - /srv/docker/letsencrypt/config/etc/letsencrypt:/etc/letsencrypt
+  deconz:
+    image: marthoc/deconz
+    container_name: deconz
+    network_mode: bridge
+    privileged: true
+    restart: always
+    ports:
+      - 9080:80
+      - 9443:443
+      - 9590:5900
+    volumes:
+      - /srv/docker/deconz/data:/root/.local/share/dresden-elektronik/deCONZ
+      - /srv/docker/deconz/otau:/root/otau
+      - /home/lokanx/docker/bin/ikea-ota-download.py:/ikea-ota-download.py
+      - /dev/ttyACM-ZIGBEE:/dev/ttyACM-ZIGBEE
+    devices:
+      - /dev/ttyACM1
+      - /dev/ttyACM0
+      - /dev/ttyACM-ZIGBEE
+    environment:
+      - DECONZ_WEB_PORT=80
+      - DECONZ_WS_PORT=443
+      - DEBUG_INFO=1
+      - DEBUG_APS=0
+      - DEBUG_ZCL=0
+      - DEBUG_ZDP=0
+      - DEBUG_OTAU=1
+      - DECONZ_DEVICE=/dev/ttyACM-ZIGBEE
+      - DECONZ_VNC_MODE=1
+      - DECONZ_VNC_PORT=5900
+      - DECONZ_VNC_PASSWORD=${DECONZ_DECONZ_VNC_PASSWORD}
+    
+  zwave2mqtt:
+    container_name: zwave2mqtt
+    image: robertslando/zwave2mqtt:latest
+    restart: always
+    depends_on:
+      - mosquitto
+      - home-assistant-home
+      - home-assistant-image-detection
+    tty: true
+    stop_signal: SIGINT
+    network_mode: bridge
+    privileged: true
+    volumes:
+      - /srv/docker/zwave2mqtt:/usr/src/app/store
+      - /dev/ttyACM-ZWAVE:/dev/ttyACM-ZWAVE
+    devices:
+      - /dev/ttyACM0:/dev/ttyACM0
+      - /dev/ttyACM1:/dev/ttyACM1
+      - /dev/ttyACM-ZWAVE:/dev/ttyACM-ZWAVE
+    ports:
+      - 8091:8091
+
+  home-assistant-image-detection:
+    container_name: home-assistant-image-detection
+    image: homeassistant/home-assistant
+    restart: always
+    depends_on:
+      - mariadb
+      - mosquitto
+    volumes:
+      - /srv/docker/homeautomation/ha-image-detection-config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /srv/shared-data:/srv/shared-data
+      - /home/lokanx/docker/init/home-assistant-image-detection.init.sh:/etc/docker-init/home-assistant-image-detection.init.sh
+      - /home/lokanx/docker/bin/wait-for-it.sh:/etc/docker-init/wait-for-it.sh
+      - /home/lokanx/docker/bin/install-opencv.sh:/etc/docker-init/install-opencv.sh
+      - /home/lokanx/docker/bin/ha-run.bash:/etc/services.d/home-assistant/run
+    ports:
+      - 8124:8123
+    network_mode: bridge
+
+  home-assistant-home:
+    container_name: home-assistant-home
+    image: homeassistant/home-assistant
+    restart: always
+    depends_on:
+      - mariadb
+      - mosquitto
+      - deconz
+    volumes:
+      - /srv/docker/homeautomation/ha-home:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /srv/shared-data:/srv/shared-data
+      - /home/lokanx/docker/init/home-assistant-home.init.sh:/etc/docker-init/home-assistant-home.init.sh
+      - /home/lokanx/docker/bin/wait-for-it.sh:/etc/docker-init/wait-for-it.sh
+      - /home/lokanx/docker/bin/ha-run.bash:/etc/services.d/home-assistant/run
+    ports:
+      - 8123:8123
+    network_mode: host
+    privileged: true
+
+  cloud9-home:
+    container_name: cloud9-home
+    image: kdelfour/cloud9-docker
+    restart: always
+    depends_on:
+      - home-assistant-home
+    volumes:
+      - /srv/docker/homeautomation/ha-home:/workspace
+    ports:
+      - 9180:80
+    network_mode: bridge
+
+  cloud9-image-detection:
+    container_name: cloud9-image-detection        
+    image: kdelfour/cloud9-docker      
+    restart: always
+    depends_on:
+      - home-assistant-image-detection
+    volumes:
+      - /srv/docker/homeautomation/ha-image-detection-config:/workspace
+    ports:
+      - 9280:80  
+    network_mode: bridge
+
+  nodered:
+    container_name: nodered
+    image: nodered/node-red-docker:v8
+    user: '${NODERED_USER}'
+    restart: always
+    depends_on:
+      - home-assistant-home
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /srv/docker/nodered:/data
+      - /srv/shared-data:/srv/shared-data
+    ports:
+      - 1880:1880
+      - 9229:9229
+
