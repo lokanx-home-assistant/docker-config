@@ -28,7 +28,7 @@ services:
     container_name: mariadb
     image: mariadb
     restart: always
-    ports: 
+    ports:
       - 3306:3306
     network_mode: bridge
     environment:
@@ -54,11 +54,11 @@ services:
     container_name: mosquitto
     image: eclipse-mosquitto
     restart: always
-    depends_on: 
+    depends_on:
       - swag
     ports:
       - 1883:1883
-      - 8883:8883 
+      - 8883:8883
       - 8083:8083
     network_mode: bridge
     volumes:
@@ -95,7 +95,7 @@ services:
       - DECONZ_VNC_MODE=1
       - DECONZ_VNC_PORT=5900
       - DECONZ_VNC_PASSWORD=${DECONZ_DECONZ_VNC_PASSWORD}
-    
+
   zwave2mqtt:
     container_name: zwave2mqtt
     image: robertslando/zwave2mqtt:latest
@@ -152,6 +152,7 @@ services:
       - /home/lokanx/docker/init/home-assistant-home.init.sh:/etc/docker-init/home-assistant-home.init.sh
       - /home/lokanx/docker/bin/wait-for-it.sh:/etc/docker-init/wait-for-it.sh
       - /home/lokanx/docker/bin/ha-run.bash:/etc/services.d/home-assistant/run
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8123:8123
     network_mode: host
@@ -170,15 +171,15 @@ services:
     network_mode: bridge
 
   cloud9-image-detection:
-    container_name: cloud9-image-detection        
-    image: kdelfour/cloud9-docker      
+    container_name: cloud9-image-detection
+    image: kdelfour/cloud9-docker
     restart: always
     depends_on:
       - home-assistant-image-detection
     volumes:
       - /srv/docker/homeautomation/ha-image-detection-config:/workspace
     ports:
-      - 9280:80  
+      - 9280:80
     network_mode: bridge
 
   nodered:
