@@ -153,6 +153,10 @@ services:
       - /home/lokanx/docker/bin/wait-for-it.sh:/etc/docker-init/wait-for-it.sh
       - /home/lokanx/docker/bin/ha-run.bash:/etc/services.d/home-assistant/run
       - /var/run/docker.sock:/var/run/docker.sock
+      - /home/lokanx/docker-data/homeautomation/gollum-certs:/docker-certs
+    environment:
+      - DOCKER_TLS_VERIFY=1
+      - DOCKER_CERT_PATH=/docker-certs
     ports:
       - 8123:8123
     network_mode: host
