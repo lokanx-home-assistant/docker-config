@@ -170,6 +170,7 @@ services:
       - /srv/docker/homeautomation/ha-home:/config
       - /etc/localtime:/etc/localtime:ro
       - /srv/shared-data:/srv/shared-data
+      - /srv/docker/frigate/media:/srv/frigate/media:ro
       - /home/lokanx/docker/init/home-assistant-home.init.sh:/etc/docker-init/home-assistant-home.init.sh
       - /home/lokanx/docker/bin/wait-for-it.sh:/etc/docker-init/wait-for-it.sh
       - /home/lokanx/docker/bin/ha-run.bash:/etc/services.d/home-assistant/run
