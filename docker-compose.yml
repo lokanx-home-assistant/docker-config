@@ -1,5 +1,6 @@
 version: "3.5"
 services:
+
   frigate:
     container_name: frigate
     privileged: true # this may not be necessary for all setups
@@ -21,6 +22,7 @@ services:
       - '1935:1935' # RTMP feeds
     environment:
       FRIGATE_RTSP_PASSWORD: '${FRIGATE_FRIGATE_RTSP_PASSWORD}'
+
   swag:
     image: ghcr.io/linuxserver/swag
     container_name: swag
@@ -45,6 +47,7 @@ services:
       - 7443:443
       - 7480:80
     restart: always
+
   mariadb:
     container_name: mariadb
     image: mariadb
@@ -85,6 +88,7 @@ services:
     volumes:
       - /srv/docker/mosquitto:/mosquitto
       - /srv/docker/letsencrypt/config/etc/letsencrypt:/etc/letsencrypt
+
   deconz:
     image: marthoc/deconz
     container_name: deconz
@@ -124,7 +128,6 @@ services:
     depends_on:
       - mosquitto
       - home-assistant-home
-      - home-assistant-image-detection
     tty: true
     stop_signal: SIGINT
     network_mode: bridge
@@ -138,25 +141,6 @@ services:
       - /dev/ttyACM-ZWAVE:/dev/ttyACM-ZWAVE
     ports:
       - 8091:8091
-
-  home-assistant-image-detection:
-    container_name: home-assistant-image-detection
-    image: homeassistant/home-assistant
-    restart: always
-    depends_on:
-      - mariadb
-      - mosquitto
-    volumes:
-      - /srv/docker/homeautomation/ha-image-detection-config:/config
-      - /etc/localtime:/etc/localtime:ro
-      - /srv/shared-data:/srv/shared-data
-      - /home/lokanx/docker/init/home-assistant-image-detection.init.sh:/etc/docker-init/home-assistant-image-detection.init.sh
-      - /home/lokanx/docker/bin/wait-for-it.sh:/etc/docker-init/wait-for-it.sh
-      - /home/lokanx/docker/bin/install-opencv.sh:/etc/docker-init/install-opencv.sh
-      - /home/lokanx/docker/bin/ha-run.bash:/etc/services.d/home-assistant/run
-    ports:
-      - 8124:8123
-    network_mode: bridge
 
   home-assistant-home:
     container_name: home-assistant-home
@@ -194,18 +178,6 @@ services:
       - /srv/docker/homeautomation/ha-home:/workspace
     ports:
       - 9180:80
-    network_mode: bridge
-
-  cloud9-image-detection:
-    container_name: cloud9-image-detection
-    image: kdelfour/cloud9-docker
-    restart: always
-    depends_on:
-      - home-assistant-image-detection
-    volumes:
-      - /srv/docker/homeautomation/ha-image-detection-config:/workspace
-    ports:
-      - 9280:80
     network_mode: bridge
 
   nodered:
