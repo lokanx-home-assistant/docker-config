@@ -9,7 +9,7 @@ echo "####  apt-get update"
 docker-compose exec deconz apt update
 
 echo "#### Install dependencies..."
-docker-compose exec deconz apt install python
+docker-compose exec deconz apt -y install python
 #docker-compose exec deconz unshare --net /lib/systemd/systemd-udevd --daemon
 #docker-compose exec deconz udevadm trigger
 #docker restart deconz
