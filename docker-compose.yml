@@ -195,3 +195,21 @@ services:
       - 1880:1880
       - 9229:9229
 
+  app-daemon:
+      container_name: app-daemon
+      image: acockburn/appdaemon:latest
+      restart: always
+      depends_on:
+        - home-assistant-home
+      volumes:
+        - /srv/docker/app-daemon:/conf
+        - /srv/docker/homeautomation/ha-home:/ha-home:ro
+        - /etc/localtime:/etc/localtime:ro
+      environment:
+        - HA_URL=http://192.168.1.191:8123
+        - TOKEN=${APP_DAEMON_TOKEN}
+        - DASH_URL=http://192.168.1.191:5050
+      ports:
+        - 5050:5050
+
+
