@@ -1,6 +1,46 @@
 version: "3.5"
 services:
 
+  acme-ln:
+    container_name: acme-ln
+    image: neilpang/acme.sh:latest
+    volumes:
+      - /home/lokanx/docker/bin/acme/acme.sh-docker.sh:/acme.sh-docker.sh:ro
+      - /home/lokanx/docker/bin/acme/acme.sh-export.sh:/acme.sh-export.sh:ro
+      - ${ACME_LN_HOME_DIR:-./acme.sh}:/acme.sh
+      - ${ACME_LN_HOME_DIR}/certs:/certs
+    environment:
+      CF_Email: ${ACME_LN_CF_EMAIL}
+      CF_Key: ${ACME_LN_CF_KEY}
+      CF_Token: ${ACME_LN_CF_TOKEN}
+      CF_Account_ID: ${ACME_LN_CF_ACCOUNT_ID}
+      CF_Zone_ID: ${ACME_LN_CF_ZONE_ID}
+      DNS_API: ${ACME_LN_DNS_API}
+      DOMAIN_NAME: ${ACME_LN_DOMAIN}
+      ACME_SH_EMAIL: ${ACME_LN_SH_ENAIL}
+      ACME_SH_CA: ${ACME_LN_CA}
+    command: sh ./acme.sh-docker.sh
+
+  acme-ds:
+    container_name: acme-ds
+    image: neilpang/acme.sh:latest
+    volumes:
+      - /home/lokanx/docker/bin/acme/acme.sh-docker.sh:/acme.sh-docker.sh:ro
+      - /home/lokanx/docker/bin/acme/acme.sh-export.sh:/acme.sh-export.sh:ro
+      - ${ACME_DS_HOME_DIR:-./acme.sh}:/acme.sh
+      - ${ACME_DS_HOME_DIR}/certs:/certs
+    environment:
+      CF_Email: ${ACME_DS_CF_EMAIL}
+      CF_Key: ${ACME_DS_CF_KEY}
+      CF_Token: ${ACME_DS_CF_TOKEN}
+      CF_Account_ID: ${ACME_DS_CF_ACCOUNT_ID}
+      CF_Zone_ID: ${ACME_DS_CF_ZONE_ID}
+      DNS_API: ${ACME_DS_DNS_API}
+      DOMAIN_NAME: ${ACME_DS_DOMAIN}
+      ACME_SH_EMAIL: ${ACME_DS_SH_ENAIL}
+      ACME_SH_CA: ${ACME_DS_CA}
+    command: sh ./acme.sh-docker.sh
+
   frigate:
     container_name: frigate
     privileged: true # this may not be necessary for all setups
@@ -22,31 +62,6 @@ services:
       - '1935:1935' # RTMP feeds
     environment:
       FRIGATE_RTSP_PASSWORD: '${FRIGATE_FRIGATE_RTSP_PASSWORD}'
-
-  swag:
-    image: ghcr.io/linuxserver/swag
-    container_name: swag
-    cap_add:
-      - NET_ADMIN
-    network_mode: bridge
-    environment:
-      - PUID=${SWAG_PUID}
-      - PGID=${SWAG_PGID}
-      - TZ=${GENERAL_TZ}
-      - URL=${SWAG_URL}
-      - SUBDOMAINS=${SWAG_SUBDOMAINS}
-      - VALIDATION=http
-      - ONLY_SUBDOMAINS=true
-      - EMAIL=${SWAG_ENAIL}
-      - UMASK=${SWAG_UMASK}
-      - MAXMINDDB_LICENSE_KEY=${SWAG_MAXMINDDB_LICENSE_KEY}
-#      - STAGING=true
-    volumes:
-      - /srv/docker/letsencrypt/config:/config
-    ports:
-      - 7443:443
-      - 7480:80
-    restart: always
 
   mariadb:
     container_name: mariadb
@@ -79,7 +94,7 @@ services:
     image: eclipse-mosquitto
     restart: always
     depends_on:
-      - swag
+      - acme-ln
     ports:
       - 1883:1883
       - 8883:8883
@@ -87,7 +102,7 @@ services:
     network_mode: bridge
     volumes:
       - /srv/docker/mosquitto:/mosquitto
-      - /srv/docker/letsencrypt/config/etc/letsencrypt:/etc/letsencrypt
+      - ${MQTT_CERT_DIR}:/etc/letsencrypt
 
   deconz:
     image: marthoc/deconz
