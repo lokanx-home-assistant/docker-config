@@ -4,11 +4,13 @@ services:
   acme-ln:
     container_name: acme-ln
     image: neilpang/acme.sh:latest
+    restart: always
     volumes:
       - /home/lokanx/docker/bin/acme/acme.sh-docker.sh:/acme.sh-docker.sh:ro
       - /home/lokanx/docker/bin/acme/acme.sh-export.sh:/acme.sh-export.sh:ro
       - ${ACME_LN_HOME_DIR:-./acme.sh}:/acme.sh
       - ${ACME_LN_HOME_DIR}/certs:/certs
+      - /home/lokanx/docker/bin/acme/acme.sh-updatecerts.sh:/acme.sh/updatecerts.sh:ro
     environment:
       CF_Email: ${ACME_LN_CF_EMAIL}
       CF_Key: ${ACME_LN_CF_KEY}
@@ -23,12 +25,14 @@ services:
 
   acme-ds:
     container_name: acme-ds
+    restart: always
     image: neilpang/acme.sh:latest
     volumes:
       - /home/lokanx/docker/bin/acme/acme.sh-docker.sh:/acme.sh-docker.sh:ro
       - /home/lokanx/docker/bin/acme/acme.sh-export.sh:/acme.sh-export.sh:ro
       - ${ACME_DS_HOME_DIR:-./acme.sh}:/acme.sh
       - ${ACME_DS_HOME_DIR}/certs:/certs
+      - /home/lokanx/docker/bin/acme/acme.sh-updatecerts.sh:/acme.sh/updatecerts.sh:ro
     environment:
       CF_Email: ${ACME_DS_CF_EMAIL}
       CF_Key: ${ACME_DS_CF_KEY}
@@ -105,7 +109,7 @@ services:
       - ${MQTT_CERT_DIR}:/etc/letsencrypt
 
   deconz:
-    image: marthoc/deconz
+    image: deconzcommunity/deconz:stable
     container_name: deconz
     network_mode: bridge
     privileged: true
@@ -115,7 +119,7 @@ services:
       - 9443:9443
       - 9590:5900
     volumes:
-      - /srv/docker/deconz/data:/root/.local/share/dresden-elektronik/deCONZ
+      - /srv/docker/deconz/data:/opt/deCONZ
       - /srv/docker/deconz/otau:/root/otau
       - /home/lokanx/docker/bin/ikea-ota-download.py:/ikea-ota-download.py
       - /dev/ttyACM-ZIGBEE:/dev/ttyACM-ZIGBEE
