@@ -5,6 +5,8 @@ services:
     container_name: acme-ln
     image: neilpang/acme.sh:latest
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - /home/lokanx/docker/bin/acme/acme.sh-docker.sh:/acme.sh-docker.sh:ro
       - /home/lokanx/docker/bin/acme/acme.sh-export.sh:/acme.sh-export.sh:ro
@@ -27,6 +29,8 @@ services:
     container_name: acme-ds
     restart: always
     image: neilpang/acme.sh:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - /home/lokanx/docker/bin/acme/acme.sh-docker.sh:/acme.sh-docker.sh:ro
       - /home/lokanx/docker/bin/acme/acme.sh-export.sh:/acme.sh-export.sh:ro
@@ -50,6 +54,8 @@ services:
     privileged: true # this may not be necessary for all setups
     restart: always
     image: blakeblackshear/frigate:stable-amd64
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     devices:
       - /dev/bus/usb:/dev/bus/usb
       - /dev/dri/renderD128 # for intel hwaccel, needs to be updated for your hardware
@@ -71,6 +77,8 @@ services:
     container_name: mariadb
     image: mariadb
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - 3306:3306
     network_mode: bridge
@@ -85,6 +93,8 @@ services:
     container_name: adminer
     image: adminer
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - mariadb
     ports:
@@ -97,6 +107,8 @@ services:
     container_name: mosquitto
     image: eclipse-mosquitto
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - acme-ln
     ports:
@@ -105,8 +117,7 @@ services:
       - 8083:8083
     network_mode: bridge
     volumes:
-      - /srv/docker/mosquitto:/mosquitto
-      - ${MQTT_CERT_DIR}:/etc/letsencrypt
+      - /srv/docker/mosquitto/data:/mosquitto
 
   deconz:
     image: deconzcommunity/deconz:stable
@@ -114,6 +125,8 @@ services:
     network_mode: bridge
     privileged: true
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - 9080:80
       - 9443:9443
@@ -144,6 +157,8 @@ services:
     container_name: zwavejs2mqtt
     image: zwavejs/zwavejs2mqtt
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - mosquitto
       - home-assistant-home
@@ -169,6 +184,8 @@ services:
     container_name: home-assistant-home
     image: homeassistant/home-assistant
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - mariadb
       - mosquitto
@@ -195,6 +212,8 @@ services:
     container_name: cloud9-home
     image: kdelfour/cloud9-docker
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - home-assistant-home
     volumes:
@@ -208,6 +227,8 @@ services:
     image: nodered/node-red-docker:v8
     user: '${NODERED_USER}'
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - home-assistant-home
     volumes:
@@ -222,6 +243,8 @@ services:
       container_name: app-daemon
       image: acockburn/appdaemon:latest
       restart: always
+      labels:
+        - "com.centurylinklabs.watchtower.enable=true"
       depends_on:
         - home-assistant-home
       volumes:
