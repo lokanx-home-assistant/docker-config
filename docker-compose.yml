@@ -122,6 +122,10 @@ services:
   zigbee2mqtt:
     container_name: zigbee2mqtt
     restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      - mosquitto
     image: koenkk/zigbee2mqtt
     volumes:
       - /srv/docker/zigbee2mqtt:/app/data
@@ -175,7 +179,6 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - mosquitto
-      - home-assistant-home
     tty: true
     stop_signal: SIGINT
     privileged: true
@@ -204,6 +207,8 @@ services:
       - mariadb
       - mosquitto
       - deconz
+      - zigbee2mqtt
+      - zwavejs2mqtt
     volumes:
       - /srv/docker/homeautomation/ha-home:/config
       - /etc/localtime:/etc/localtime:ro
