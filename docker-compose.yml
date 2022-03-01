@@ -126,6 +126,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - mosquitto
+      - home-assistant-home
     image: koenkk/zigbee2mqtt
     volumes:
       - /srv/docker/zigbee2mqtt:/app/data
@@ -137,40 +138,6 @@ services:
     devices:
       - /dev/ttyUSB-SONOFF:/dev/ttyUSB-SONOFF
 
-  deconz:
-    image: deconzcommunity/deconz:stable
-    container_name: deconz
-    network_mode: bridge
-    privileged: true
-    restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    ports:
-      - 9080:80
-      - 9443:9443
-      - 9590:5900
-    volumes:
-      - /srv/docker/deconz/data:/opt/deCONZ
-      - /srv/docker/deconz/otau:/root/otau
-      - /home/lokanx/docker/bin/ikea-ota-download.py:/ikea-ota-download.py
-      - /dev/ttyACM-ZIGBEE:/dev/ttyACM-ZIGBEE
-    devices:
-      - /dev/ttyACM1
-      - /dev/ttyACM0
-      - /dev/ttyACM-ZIGBEE
-    environment:
-      - DECONZ_WEB_PORT=80
-      - DECONZ_WS_PORT=9443
-      - DEBUG_INFO=1
-      - DEBUG_APS=0
-      - DEBUG_ZCL=0
-      - DEBUG_ZDP=0
-      - DEBUG_OTAU=0
-      - DECONZ_DEVICE=/dev/ttyACM-ZIGBEE
-      - DECONZ_VNC_MODE=1
-      - DECONZ_VNC_PORT=5900
-      - DECONZ_VNC_PASSWORD=${DECONZ_DECONZ_VNC_PASSWORD}
-
   zwavejs2mqtt:
     container_name: zwavejs2mqtt
     image: zwavejs/zwavejs2mqtt
@@ -179,6 +146,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - mosquitto
+      - home-assistant-home
     tty: true
     stop_signal: SIGINT
     privileged: true
@@ -207,8 +175,6 @@ services:
       - mariadb
       - mosquitto
       - deconz
-      - zigbee2mqtt
-      - zwavejs2mqtt
     volumes:
       - /srv/docker/homeautomation/ha-home:/config
       - /etc/localtime:/etc/localtime:ro
