@@ -174,7 +174,6 @@ services:
     depends_on:
       - mariadb
       - mosquitto
-      - deconz
     volumes:
       - /srv/docker/homeautomation/ha-home:/config
       - /etc/localtime:/etc/localtime:ro
